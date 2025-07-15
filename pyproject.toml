@@ -33,7 +33,7 @@ pytest-ruff = "^0.5"
 pytest-mypy = "^1.0.1"
 
 [tool.pytest.ini_options]
-addopts = "--strict-markers --tb=short --mypy --cov=aresource --cov-report=html --ruff --ruff-format"
+addopts = "--strict-markers --tb=short --mypy --cov=aresource --cov-report=html  --cov-report=term --ruff --ruff-format"
 asyncio_mode = "auto"
 testpaths = ["tests", "src"]
 
