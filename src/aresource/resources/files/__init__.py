@@ -14,7 +14,7 @@ __all__ = [
 ]
 
 try:
-    from .hocon import JsonResource as HoconResource
+    from .hocon import HoconResource
 except ImportError:
     pass
 else:

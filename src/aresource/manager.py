@@ -31,7 +31,7 @@ class ResourceManager:
         cls._resources = copy.deepcopy(cls._resources)
 
     def __init__(self) -> None:
-        self._exitstack = contextlib.AsyncExitStack()
+        self._exitstack: contextlib.AsyncExitStack | None = None
 
     @classmethod
     def register_resource(cls, name: str, resource: BaseResource[Any]) -> None:
@@ -67,20 +67,33 @@ class ResourceManager:
         resource = self._resources[name][0]
         self._resources[name] = (resource, value)
 
+    async def setup(self) -> None:
+        await self.__aenter__()
+
     async def __aenter__(self) -> Self:
         """Asynchronously enter the resource manager context, acquiring all resources.
         Each resource is acquired using its async context manager and set in the manager.
         Returns self.
         """
+        if self._exitstack is not None:
+            raise RuntimeError("ResourceManager is already set up")
+
+        self._exitstack = contextlib.AsyncExitStack()
         for name, (resource, _) in self._resources.items():
             value = await self._exitstack.enter_async_context(resource.acquire(self))
             self.set_resource(name, value)
-
         return self
+
+    async def aclose(self) -> None:
+        """Asynchronously close the resource manager, releasing all resources."""
+        await self.__aexit__()
 
     async def __aexit__(self, *exc: Any) -> bool | None:
         """Asynchronously exit the resource manager context, releasing all resources.
         Delegates to the AsyncExitStack's __aexit__ method.
         Returns the result of the exit stack's __aexit__.
         """
-        return await self._exitstack.__aexit__(*exc)
+        if self._exitstack is not None:
+            await self._exitstack.__aexit__(*exc)
+        self._exitstack = None
+        return False  # Do not suppress exceptions

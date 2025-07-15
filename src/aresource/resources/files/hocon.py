@@ -7,7 +7,7 @@ from aresource.manager import ResourceManager
 from aresource.resources.files.base import BasePathResource
 
 
-class JsonResource(BasePathResource[ConfigTree]):
+class HoconResource(BasePathResource[ConfigTree]):
     """
     Resource that provides a JSON file in a package.
     """
