@@ -25,10 +25,8 @@ class BaseResource[T](ABC):
 
 
 class ResourceManager:
+    _cls: Any = None
     _resources: ClassVar[dict[str, tuple[BaseResource[Any], Any]]] = {}
-
-    def __init_subclass__(cls) -> None:
-        cls._resources = copy.deepcopy(cls._resources)
 
     def __init__(self) -> None:
         self._exitstack: contextlib.AsyncExitStack | None = None
@@ -40,6 +38,11 @@ class ResourceManager:
             raise TypeError(f"{resource.__name__} is not a subclass of BaseResource")
         if name in cls._resources:
             raise AttributeError(f"Resource {name} is already registered in {cls.__name__}")
+        # Create a copy of the class resources to avoid modifying the superclass
+        if cls._cls is not cls:
+            cls._resources = copy.deepcopy(cls._resources)
+            cls._cls = cls
+
         cls._resources[name] = (resource, ...)
         resource.name = name
 
