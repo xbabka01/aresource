@@ -167,3 +167,31 @@ async def test_failure_cleanup_manager() -> None:
             pytest.fail("This should not be reached")
 
     assert cleaned == [2, 1], "Resources should be cleaned up in reverse order of acquisition"
+
+
+async def test_transitive_manager() -> None:
+    """Test that ResourceManager can acquire and return a simple ExampleResource asynchronously."""
+    cleaned = []
+
+    class Test1(ResourceManager):
+        """Resource manager containing the ExampleResource for testing."""
+
+        @resource
+        async def test1(self: "ResourceManager") -> AsyncIterator[int]:
+            try:
+                yield 1
+            finally:
+                cleaned.append(1)
+
+        @resource
+        async def test2(self: "ResourceManager") -> AsyncIterator[int]:
+            try:
+                yield self.test1 + 1  # type: ignore
+            finally:
+                cleaned.append(2)
+
+    async with Test1() as t1:
+        assert t1.test1 == 1
+        assert t1.test2 == 2
+
+    assert cleaned == [2, 1], "Resources should be cleaned up in reverse order of acquisition"
