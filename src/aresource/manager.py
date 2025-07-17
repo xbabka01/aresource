@@ -82,9 +82,15 @@ class ResourceManager:
             raise RuntimeError("ResourceManager is already set up")
 
         self._exitstack = contextlib.AsyncExitStack()
-        for name, (resource, _) in self._resources.items():
-            value = await self._exitstack.enter_async_context(resource.acquire(self))
-            self.set_resource(name, value)
+        try:
+            for name, (resource, _) in self._resources.items():
+                value = await self._exitstack.enter_async_context(resource.acquire(self))
+                self.set_resource(name, value)
+        except BaseException as exc:
+            suppress = await self.__aexit__(type(exc), exc, exc.__traceback__)
+            if not suppress:
+                raise
+
         return self
 
     async def aclose(self) -> None:
@@ -96,7 +102,8 @@ class ResourceManager:
         Delegates to the AsyncExitStack's __aexit__ method.
         Returns the result of the exit stack's __aexit__.
         """
+        res: bool | None = False
         if self._exitstack is not None:
-            await self._exitstack.__aexit__(*exc)
+            res = await self._exitstack.__aexit__(*exc)
         self._exitstack = None
-        return False  # Do not suppress exceptions
+        return res
