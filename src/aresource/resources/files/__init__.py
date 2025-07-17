@@ -15,7 +15,15 @@ __all__ = [
 
 try:
     from .hocon import HoconResource
+
+    __all__.append("HoconResource")
 except ImportError:
     pass
-else:
-    __all__.append("HoconResource")
+
+
+try:
+    from .yaml import YamlResource  # noqa: F401
+
+    __all__.append("YamlResource")
+except ImportError:
+    pass
