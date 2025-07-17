@@ -2,7 +2,7 @@ import contextlib
 import copy
 from abc import ABC, abstractmethod
 from ast import TypeVar
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from typing import Any, ClassVar, Self
 
 T = TypeVar("T")
@@ -22,6 +22,20 @@ class BaseResource[T](ABC):
     async def acquire(self, manager: "ResourceManager") -> AsyncIterator[T]:
         """Acquire the resource asynchronously."""
         yield None  # type: ignore[misc]
+
+
+class CallBackResource[T](BaseResource[T]):
+    def __init__(self, callback: Callable[["ResourceManager"], AsyncIterator[T]]) -> None:
+        self.callback = contextlib.asynccontextmanager(callback)
+
+    @contextlib.asynccontextmanager
+    async def acquire(self, manager: "ResourceManager") -> AsyncIterator[T]:
+        async with self.callback(manager) as value:
+            yield value
+
+
+def resource[T](fn: Callable[["ResourceManager"], AsyncIterator[T]]) -> CallBackResource[T]:
+    return CallBackResource(fn)
 
 
 class ResourceManager:

@@ -3,7 +3,7 @@ from collections.abc import AsyncIterator
 
 import pytest
 
-from aresource.manager import BaseResource, ResourceManager
+from aresource.manager import BaseResource, ResourceManager, resource
 
 
 class ExampleResource(BaseResource[int]):
@@ -76,3 +76,94 @@ async def test_inheritance_resource_manager() -> None:
 
         assert t2.test1 == 1
         assert t2.test2 == 2
+
+
+async def test_decorator_resource_manager() -> None:
+    """Test that ResourceManager can acquire and return a simple ExampleResource asynchronously."""
+
+    class Test1(ResourceManager):
+        """Resource manager containing the ExampleResource for testing."""
+
+        @resource
+        async def test1(self: "ResourceManager") -> AsyncIterator[int]:
+            yield 1
+
+    async with Test1() as t1:
+        assert t1.test1 == 1
+
+
+async def test_cleanup_oder_manager() -> None:
+    """Test that ResourceManager can acquire and return a simple ExampleResource asynchronously."""
+    cleaned = []
+
+    class Test1(ResourceManager):
+        """Resource manager containing the ExampleResource for testing."""
+
+        @resource
+        async def test1(self: "ResourceManager") -> AsyncIterator[int]:
+            try:
+                yield 1
+            finally:
+                cleaned.append(1)
+
+        @resource
+        async def test2(self: "ResourceManager") -> AsyncIterator[int]:
+            try:
+                yield 2
+            finally:
+                cleaned.append(2)
+
+        @resource
+        async def test3(self: "ResourceManager") -> AsyncIterator[int]:
+            try:
+                yield 3
+            finally:
+                cleaned.append(3)
+
+    async with Test1() as t1:
+        assert t1.test1 == 1
+        assert t1.test2 == 2
+        assert t1.test3 == 3
+
+    assert cleaned == [3, 2, 1], "Resources should be cleaned up in reverse order of acquisition"
+
+
+async def test_failure_cleanup_manager() -> None:
+    """Test that ResourceManager can acquire and return a simple ExampleResource asynchronously."""
+    cleaned = []
+
+    class Test1(ResourceManager):
+        """Resource manager containing the ExampleResource for testing."""
+
+        @resource
+        async def test1(self: "ResourceManager") -> AsyncIterator[int]:
+            try:
+                yield 1
+            finally:
+                cleaned.append(1)
+
+        @resource
+        async def test2(self: "ResourceManager") -> AsyncIterator[int]:
+            try:
+                yield 2
+            finally:
+                cleaned.append(2)
+
+        @resource
+        async def test3(self: "ResourceManager") -> AsyncIterator[int]:
+            raise RuntimeError("This is a test failure")
+            # This line will never be reached, but is needed for type checking
+            yield None  # type: ignore[unreachable]
+
+        @resource
+        async def test4(self: "ResourceManager") -> AsyncIterator[int]:
+            try:
+                yield 4
+            finally:
+                cleaned.append(4)
+
+    with pytest.raises(RuntimeError):
+        async with Test1():
+            pytest.fail("This should not be reached")
+
+    assert cleaned == [2, 1], "Resources should be cleaned up in reverse order of acquisition"
