@@ -2,12 +2,12 @@ import contextlib
 import copy
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator, Callable
-from typing import Any, ClassVar, Self, TypeVar
+from typing import Any, ClassVar, Generic, Self, TypeVar
 
 T = TypeVar("T")
 
 
-class BaseResource[T](ABC):
+class BaseResource(ABC, Generic[T]):
     name: str | None = None
 
     def __get__(self, instance: "ResourceManager", owner: "type[ResourceManager]") -> T:
@@ -23,7 +23,7 @@ class BaseResource[T](ABC):
         yield None  # type: ignore[misc]
 
 
-class CallBackResource[T](BaseResource[T]):
+class CallBackResource(BaseResource[T], Generic[T]):
     def __init__(
         self,
         callback: Callable[["ResourceManager"], AsyncIterator[T]],
@@ -36,7 +36,7 @@ class CallBackResource[T](BaseResource[T]):
             yield value
 
 
-def resource[T](fn: Callable[["ResourceManager"], AsyncIterator[T]]) -> CallBackResource[T]:
+def resource(fn: Callable[["ResourceManager"], AsyncIterator[T]]) -> CallBackResource[T]:
     return CallBackResource(fn)
 
 
