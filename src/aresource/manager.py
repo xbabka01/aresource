@@ -116,7 +116,7 @@ class ResourceManager:
         Delegates to the AsyncExitStack's __aexit__ method.
         Returns the result of the exit stack's __aexit__.
         """
-        res = False
+        res: bool | None = False
         if self._exitstack is not None:
             res = await self._exitstack.__aexit__(*exc)
         self._exitstack = None
