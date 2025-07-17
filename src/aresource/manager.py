@@ -1,8 +1,15 @@
 import contextlib
 import copy
+import sys
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator, Callable
-from typing import Any, ClassVar, Generic, Self, TypeVar
+from typing import Any, ClassVar, Generic, TypeVar
+
+if sys.version_info <= (3, 10):
+    # Use typing_extensions for Self type hint
+    from typing_extensions import Self
+else:
+    from typing import Self
 
 T = TypeVar("T")
 
