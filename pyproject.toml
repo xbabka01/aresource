@@ -6,7 +6,7 @@ authors = [
     {name = "Peter Babka",email = "159peter951@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.13, <4.0"
+requires-python = ">=3.11, <4.0"
 dependencies = [
 ]
 
@@ -37,6 +37,7 @@ aiohttp = "^3.12.14"
 pyhocon = "^0.3.61"
 pyyaml = "^6.0.2"
 types-pyyaml = "^6.0.12.20250516"
+
 
 [tool.pytest.ini_options]
 addopts = "--strict-markers --tb=short --mypy --cov=aresource --cov-report=html  --cov-report=term --ruff --ruff-format"

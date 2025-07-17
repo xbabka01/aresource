@@ -4,14 +4,14 @@ from collections.abc import Iterator
 from importlib.resources import as_file, files
 from importlib.resources.abc import Traversable
 from pathlib import Path
-from typing import TypeVar
+from typing import Generic, TypeVar
 
 from aresource.manager import BaseResource
 
 T = TypeVar("T")
 
 
-class BasePathResource[T](BaseResource[T], metaclass=ABCMeta):
+class BasePathResource(BaseResource[T], Generic[T], metaclass=ABCMeta):
     def __init__(self, package: str, path: str) -> None:
         super().__init__()
         self.package = package

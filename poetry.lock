@@ -134,6 +134,7 @@ files = [
 
 [package.dependencies]
 frozenlist = ">=1.1.0"
+typing-extensions = {version = ">=4.2", markers = "python_version < \"3.13\""}
 
 [[package]]
 name = "attrs"
@@ -990,11 +991,12 @@ version = "4.14.1"
 description = "Backported and Experimental Type Hints for Python 3.9+"
 optional = false
 python-versions = ">=3.9"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "typing_extensions-4.14.1-py3-none-any.whl", hash = "sha256:d1e1e3b58374dc93031d6eda2420a48ea44a36c2b4766a4fdeb3710755731d76"},
     {file = "typing_extensions-4.14.1.tar.gz", hash = "sha256:38b39f4aeeab64884ce9f74c94263ef78f3c22467c8724005483154c26648d36"},
 ]
+markers = {main = "python_version < \"3.13\""}
 
 [[package]]
 name = "yarl"
@@ -1122,5 +1124,5 @@ pyyaml = ["pyyaml"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.13, <4.0"
-content-hash = "d5651025535f89bb6e3eacfc10f11147f828a052d48b871a839e614f8d3b3189"
+python-versions = ">=3.11, <4.0"
+content-hash = "0ac6d37aef61cb073e17513f233ad6eb67c42fd7196f7c84a7c6a419afe3db44"
