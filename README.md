@@ -1,5 +1,8 @@
 # aresource
 
+[![pypi](https://img.shields.io/pypi/v/aresource)](https://pypi.org/project/aresource/)
+[![python](https://img.shields.io/pypi/pyversions/aresource.svg)](https://pypi.org/project/aresource/)
+
 A Python project for resource management.
 
 ## Project Structure
