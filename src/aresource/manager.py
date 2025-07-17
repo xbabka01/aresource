@@ -5,11 +5,10 @@ from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator, Callable
 from typing import Any, ClassVar, Generic, TypeVar
 
-if sys.version_info <= (3, 10):
-    # Use typing_extensions for Self type hint
-    from typing_extensions import Self
-else:
+if sys.version_info.minor >= 11:
     from typing import Self
+else:
+    from typing_extensions import Self
 
 T = TypeVar("T")
 
