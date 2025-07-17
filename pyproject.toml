@@ -6,7 +6,7 @@ authors = [
     {name = "Peter Babka",email = "159peter951@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.10, <4.0"
+requires-python = ">=3.11, <4.0"
 dependencies = [
 ]
 
@@ -17,8 +17,6 @@ repository = "https://github.com/xbabka01/aresource"
 packages = [{include = "aresource", from = "src"}]
 
 [tool.poetry.dependencies]
-typing_extensions = {version = "^4.0.0", python = "<=3.10"}
-
 aiohttp = { version = "^3.0.0", optional = true }
 pyhocon = { version = "^0.3.0", optional = true }
 pyyaml = { version = "^6.0.0", optional = true }
