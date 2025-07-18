@@ -15,7 +15,13 @@ tests/
 
 ## Installation
 
-Use [Poetry](https://python-poetry.org/) to install dependencies:
+Use pip to install released version:
+
+```sh
+pip install aresource
+```
+
+Use [Poetry](https://python-poetry.org/) to install local version:
 
 ```sh
 poetry install
