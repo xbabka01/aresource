@@ -23,10 +23,28 @@ poetry install
 
 ## Usage
 
-Import and use the package in your Python code:
+
 
 ```python
-from aresource import manager
+from aresource import ResourceManager, resource
+from aresource.aiohttp.session import ClientSessionResource
+from typing import AsyncIterator
+
+...
+
+class Test(ResourceManager):
+  session = ClientSessionResource()
+
+  @resource
+  async def data(self: "Test") -> AsyncIterator[str]:
+    async with self.session.get('https://example.com') as resp:
+      data = await resp.read()
+    yield data
+
+...
+
+async with Test() as mng:
+  print(msg.data)
 ```
 
 ## Testing
@@ -39,8 +57,14 @@ poetry run pytest
 
 ## Code Quality
 
-- Type checking: `poetry run mypy src/`
-- Linting: `poetry run ruff src/`
+Command to format and lint code:
+
+```sh
+poetry run ruff format .
+poetry run ruff check --fix
+poetry run mypy .
+
+```
 
 ## License
 
