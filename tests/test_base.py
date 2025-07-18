@@ -85,7 +85,7 @@ async def test_decorator_resource_manager() -> None:
         """Resource manager containing the ExampleResource for testing."""
 
         @resource
-        async def test1(self: "ResourceManager") -> AsyncIterator[int]:
+        async def test1(self: "Test1") -> AsyncIterator[int]:
             yield 1
 
     async with Test1() as t1:
@@ -100,21 +100,21 @@ async def test_cleanup_oder_manager() -> None:
         """Resource manager containing the ExampleResource for testing."""
 
         @resource
-        async def test1(self: "ResourceManager") -> AsyncIterator[int]:
+        async def test1(self: "Test1") -> AsyncIterator[int]:
             try:
                 yield 1
             finally:
                 cleaned.append(1)
 
         @resource
-        async def test2(self: "ResourceManager") -> AsyncIterator[int]:
+        async def test2(self: "Test1") -> AsyncIterator[int]:
             try:
                 yield 2
             finally:
                 cleaned.append(2)
 
         @resource
-        async def test3(self: "ResourceManager") -> AsyncIterator[int]:
+        async def test3(self: "Test1") -> AsyncIterator[int]:
             try:
                 yield 3
             finally:
@@ -136,27 +136,27 @@ async def test_failure_cleanup_manager() -> None:
         """Resource manager containing the ExampleResource for testing."""
 
         @resource
-        async def test1(self: "ResourceManager") -> AsyncIterator[int]:
+        async def test1(self: "Test1") -> AsyncIterator[int]:
             try:
                 yield 1
             finally:
                 cleaned.append(1)
 
         @resource
-        async def test2(self: "ResourceManager") -> AsyncIterator[int]:
+        async def test2(self: "Test1") -> AsyncIterator[int]:
             try:
                 yield 2
             finally:
                 cleaned.append(2)
 
         @resource
-        async def test3(self: "ResourceManager") -> AsyncIterator[int]:
+        async def test3(self: "Test1") -> AsyncIterator[int]:
             raise RuntimeError("This is a test failure")
             # This line will never be reached, but is needed for type checking
             yield None  # type: ignore[unreachable]
 
         @resource
-        async def test4(self: "ResourceManager") -> AsyncIterator[int]:
+        async def test4(self: "Test1") -> AsyncIterator[int]:
             try:
                 yield 4
             finally:
@@ -177,16 +177,16 @@ async def test_transitive_manager() -> None:
         """Resource manager containing the ExampleResource for testing."""
 
         @resource
-        async def test1(self: "ResourceManager") -> AsyncIterator[int]:
+        async def test1(self: "Test1") -> AsyncIterator[int]:
             try:
                 yield 1
             finally:
                 cleaned.append(1)
 
         @resource
-        async def test2(self: "ResourceManager") -> AsyncIterator[int]:
+        async def test2(self: "Test1") -> AsyncIterator[int]:
             try:
-                yield self.test1 + 1  # type: ignore
+                yield self.test1 + 1
             finally:
                 cleaned.append(2)
 

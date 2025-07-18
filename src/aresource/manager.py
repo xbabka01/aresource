@@ -5,6 +5,7 @@ from collections.abc import AsyncIterator, Callable
 from typing import Any, ClassVar, Generic, Self, TypeVar
 
 T = TypeVar("T")
+M = TypeVar("M", bound="ResourceManager")
 
 
 class BaseResource(ABC, Generic[T]):
@@ -26,7 +27,7 @@ class BaseResource(ABC, Generic[T]):
 class CallBackResource(BaseResource[T], Generic[T]):
     def __init__(
         self,
-        callback: Callable[["ResourceManager"], AsyncIterator[T]],
+        callback: Callable[[Any], AsyncIterator[T]],
     ) -> None:
         self.callback = contextlib.asynccontextmanager(callback)
 
@@ -36,7 +37,7 @@ class CallBackResource(BaseResource[T], Generic[T]):
             yield value
 
 
-def resource(fn: Callable[["ResourceManager"], AsyncIterator[T]]) -> CallBackResource[T]:
+def resource(fn: Callable[[M], AsyncIterator[T]]) -> CallBackResource[T]:
     return CallBackResource(fn)
 
 
