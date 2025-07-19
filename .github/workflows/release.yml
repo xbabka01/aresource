@@ -1,4 +1,4 @@
-name: Release
+name: Upload Python Package
 
 on:
   workflow_dispatch:
@@ -19,16 +19,29 @@ on:
           - preminor
           - premajor
           - prerelease
-    
+
+permissions:
+  contents: write
+  
 jobs:
-  example:
+  increase-version:
+    # Dedicated environments with protections for publishing are strongly recommended.
+    # For more information, see: https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment#deployment-protection-rules
+    environment:
+      name: pypi
+      # OPTIONAL: uncomment and update to include your PyPI project URL in the deployment status:
+      # url: https://pypi.org/p/YOURPROJECT
+      #
+      # ALTERNATIVE: if your GitHub Release name is the PyPI project version string
+      # ALTERNATIVE: exactly, uncomment the following line instead:
+      # url: https://pypi.org/project/YOURPROJECT/${{ github.event.release.name }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
     steps:
       - uses: actions/checkout@v4
-        # with:
-            # ref: "refs/heads/main"
       - uses: xbabka01/poetry-action@v1
         with:
           python_version: '3.13'
@@ -40,5 +53,18 @@ jobs:
         run: |
           git commit -m "Release version ${{ steps.version.outputs.stdout }}"
           git push
-      - name: Print Hello
-        run: echo "Hello from workflow_dispatch!"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build release distributions
+        run: |
+          poetry build
+      - name: Make release
+        id: release
+        run: |
+          gh release create v${{steps.version.outputs.stdout }} --generate-notes dist/*.whl dist/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish release distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
