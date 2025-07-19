@@ -21,6 +21,37 @@ permissions:
   
 jobs:
   increase-version:
+    environment:
+      name: pypi
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: xbabka01/poetry-action@v1
+        with:
+          python_version: '3.13'
+      - name: Increase version
+        id: version
+        run: |
+          poetry version -s ${{ github.event.inputs.release_type }} 
+      - name: Push changes
+        run: |
+          git config user.name "Peter Babka"
+          git config user.email "159peter951@gmail.com"
+
+          git checkout -b release-${{ steps.version.outputs.stdout }}
+          git add .
+          git commit -m "Release version ${{ steps.version.outputs.stdout }}"
+          git push --set-upstream origin release-${{ steps.version.outputs.stdout }}
+          gh pr create --title "Release version ${{ steps.version.outputs.stdout }}" --body "This PR releases version ${{ steps.version.outputs.stdout }}." --base main --head release-${{ steps.version.outputs.stdout }}
+          gh pr merge --squash --delete-branch --auto --admin --yes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    outputs:
+      version: ${{ steps.version.outputs.stdout }}
+  create-release:
+    needs: increase-version
     # Dedicated environments with protections for publishing are strongly recommended.
     # For more information, see: https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment#deployment-protection-rules
     environment:
@@ -41,26 +72,13 @@ jobs:
       - uses: xbabka01/poetry-action@v1
         with:
           python_version: '3.13'
-      - name: Increase version
-        id: version
-        run: |
-          poetry version -s ${{ github.event.inputs.release_type }} 
-      - name: Push changes
-        run: |
-          git config user.name "Peter Babka"
-          git config user.email "159peter951@gmail.com"
-
-          git checkout -b release-${{ steps.version.outputs.stdout }}
-          git add .
-          git commit -m "Release version ${{ steps.version.outputs.stdout }}"
-          git push
-          gh pr create --title "Release version ${{ steps.version.outputs.stdout }}" --body "This PR releases version ${{ steps.version.outputs.stdout }}." --base main --head release-${{ steps.version.outputs.stdout }}
-          gh pr merge --squash --delete-branch --auto --admin --yes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Build release distributions
         run: |
           poetry build
+      - name: Version
+        id: version
+        run: |
+          poetry version -s
       - name: Make release
         id: release
         run: |
