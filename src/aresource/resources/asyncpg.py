@@ -2,7 +2,7 @@ import contextlib
 from collections.abc import AsyncIterator, Callable
 from typing import Any
 
-import asyncpg # type: ignore[import-untyped]
+import asyncpg  # type: ignore[import-untyped]
 
 from aresource.manager import BaseResource, ResourceManager
 
