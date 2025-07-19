@@ -195,3 +195,7 @@ async def test_transitive_manager() -> None:
         assert t1.test2 == 2
 
     assert cleaned == [2, 1], "Resources should be cleaned up in reverse order of acquisition"
+
+
+def test_fail() -> None:
+    pytest.fail("This is a test failure that should not be caught by the ResourceManager")
