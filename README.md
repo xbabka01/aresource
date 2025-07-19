@@ -2,6 +2,7 @@
 
 [![pypi](https://img.shields.io/pypi/v/aresource)](https://pypi.org/project/aresource/)
 [![python](https://img.shields.io/pypi/pyversions/aresource.svg)](https://pypi.org/project/aresource/)
+[![Tests](https://github.com/xbabka01/aresource/actions/workflows/python.yml/badge.svg)](https://github.com/xbabka01/aresource/actions/workflows/python.yml)
 
 A Python project for resource management.
 
