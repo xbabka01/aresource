@@ -37,12 +37,4 @@ jobs:
       id: pytest
       shell: bash
       run: |
-        poetry run pytest | tee pytest.log
-        if [ $? -ne 0 ]; then
-          echo "# Pytest summary" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          cat pytest.log >>  $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          exit 1
-        fi
-       
+        poetry run pytest
