@@ -20,17 +20,9 @@ jobs:
         python_version: ['3.13','3.12','3.11']
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python_version }}
-      uses: actions/setup-python@v3
+    - uses: xbabka01/poetry-action@33b75886ee1504a47eb3ee3050045a2bb6d01db6
       with:
-        python-version: ${{ matrix.python_version }}
-    - name: Install Poetry
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install poetry
-        poetry config virtualenvs.create true
-        poetry config virtualenvs.in-project false
-        poetry config virtualenvs.path .virtualenvs
+        python_version: ${{ matrix.python_version }}
     - name: Install dependencies
       run: |
          poetry install
