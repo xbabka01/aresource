@@ -64,7 +64,7 @@ jobs:
       - name: Make release
         id: release
         run: |
-          gh release create v${{steps.version.outputs.stdout }} --generate-notes dist/*.whl dist/*.tar.gz
+          gh release create v${{ steps.version.outputs.stdout }} --generate-notes dist/*.whl dist/*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish release distributions to PyPI
