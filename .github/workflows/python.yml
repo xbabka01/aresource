@@ -37,4 +37,7 @@ jobs:
       id: pytest
       run: |
         poetry run pytest | tee pytest.log
-        echo "# Pytest summary" '```' `cat pytest.log` '```' >> $GITHUB_STEP_SUMMARY
+        echo "# Pytest summary" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        cat pytest.log >>  $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
