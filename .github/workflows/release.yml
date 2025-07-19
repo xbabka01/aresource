@@ -51,6 +51,9 @@ jobs:
           poetry version -s ${{ github.event.inputs.release_type }} 
       - name: Push changes
         run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
           git commit -m "Release version ${{ steps.version.outputs.stdout }}"
           git push
         env:
