@@ -30,6 +30,9 @@ jobs:
       if: matrix.python_version == '3.13'
       run: |
         poetry check --lock
+    - name: Install dependencies
+      run: |
+         poetry install
     - name: Test with pytest
       run: |
         poetry run pytest
