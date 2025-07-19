@@ -48,7 +48,7 @@ jobs:
       - name: Increase version
         id: version
         run: |
-          poetry.exe version -s ${{ github.event.inputs.release_type }} 
+          poetry version -s ${{ github.event.inputs.release_type }} 
       - name: Push changes
         run: |
           git commit -m "Release version ${{ steps.version.outputs.stdout }}"
