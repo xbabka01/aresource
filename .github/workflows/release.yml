@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      example_input:
+        description: 'An example input for the workflow'
+        required: false
+        default: 'default_value'
+      release_type:
+        description: 'Type of release'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - prepatch
+          - preminor
+          - premajor
+          - prerelease
+    
+jobs:
+  example:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        # with:
+            # ref: "refs/heads/main"
+      - uses: xbabka01/poetry-action@v1
+        with:
+          python_version: '3.13'
+      - name: Increase version
+        id: version
+        run: |
+          poetry.exe version -s ${{ github.event.inputs.release_type }} 
+      - name: Push changes
+        run: |
+          git commit -m "Release version ${{ steps.version.outputs.stdout }}"
+          git push
+      - name: Print Hello
+        run: echo "Hello from workflow_dispatch!"
