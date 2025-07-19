@@ -3,10 +3,6 @@ name: Upload Python Package
 on:
   workflow_dispatch:
     inputs:
-      example_input:
-        description: 'An example input for the workflow'
-        required: false
-        default: 'default_value'
       release_type:
         description: 'Type of release'
         required: true
