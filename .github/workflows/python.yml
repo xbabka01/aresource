@@ -19,6 +19,9 @@ jobs:
       matrix:
         python_version: ['3.13','3.12','3.11']
     steps:
+    - name: Echo
+      run: |
+        echo ${{ github.ref }}
     - uses: actions/checkout@v4
     - uses: xbabka01/poetry-action@v1
       with:
