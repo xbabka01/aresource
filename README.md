@@ -29,7 +29,7 @@ poetry install
 
 ## Usage
 
-Example of usage. Load config and use it to inicialize new session
+Example of usage. Load config and use it to initialize new session
 
 ```python
 import asyncio
