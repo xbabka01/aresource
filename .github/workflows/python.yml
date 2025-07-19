@@ -36,4 +36,5 @@ jobs:
          poetry install
     - name: Test with pytest
       run: |
-        poetry run pytest
+        poetry run pytest | tee result.log
+        cat result.log > $GITHUB_STEP_SUMMARY
