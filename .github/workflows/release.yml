@@ -49,9 +49,13 @@ jobs:
         run: |
           git config user.name "Peter Babka"
           git config user.email "159peter951@gmail.com"
+
+          git checkout -b release-${{ steps.version.outputs.stdout }}
           git add .
           git commit -m "Release version ${{ steps.version.outputs.stdout }}"
           git push
+          gh pr create --title "Release version ${{ steps.version.outputs.stdout }}" --body "This PR releases version ${{ steps.version.outputs.stdout }}." --base main --head release-${{ steps.version.outputs.stdout }}
+          gh pr merge --squash --delete-branch --auto --admin --yes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Build release distributions
