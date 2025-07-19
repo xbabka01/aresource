@@ -19,10 +19,6 @@ jobs:
       matrix:
         python_version: ['3.13','3.12','3.11']
     steps:
-    - name: Echo
-      run: |
-        echo ${{ github.ref }}
-        echo ${{ github.event_name }}
     - uses: actions/checkout@v4
     - uses: xbabka01/poetry-action@v1
       with:
@@ -38,22 +34,7 @@ jobs:
       run: |
          poetry install
     - name: Test with pytest
+      id: pytest
       run: |
-        poetry run pytest
-  build:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-    - uses: actions/checkout@v4
-    - uses: xbabka01/poetry-action@v1
-      with:
-        python_version: '3.13'
-    - name: Build package
-      run: |
-        poetry build
-    - name: Upload dist
-      uses: actions/upload-artifact@v4
-      with:
-        name: dist
-        path: dist/
-        retention-days: 1
+        poetry run pytest | tee pytest.log
+        echo "# Pytest summary" '```' `cat pytest.log` '```' >> $GITHUB_STEP_SUMMARY
