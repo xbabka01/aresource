@@ -23,9 +23,13 @@ jobs:
     - uses: xbabka01/poetry-action@v1
       with:
         python_version: ${{ matrix.python_version }}
-    - name: Install dependencies
+    - name: Poetry check
+      # Check onlt in one version of Python
+      # This is useful to ensure that the lock file is up to date
+      # But 
+      if: matrix.python_version == '3.13'
       run: |
-         poetry install
+        poetry check --lock
     - name: Test with pytest
       run: |
         poetry run pytest
