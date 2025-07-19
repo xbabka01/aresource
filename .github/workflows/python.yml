@@ -37,4 +37,6 @@ jobs:
     - name: Test with pytest
       run: |
         poetry run pytest | tee result.log
-        cat result.log > $GITHUB_STEP_SUMMARY
+        echo "```" >> $GITHUB_STEP_SUMMARY 
+        cat result.log >> $GITHUB_STEP_SUMMARY
+        echo "```" >> $GITHUB_STEP_SUMMARY 
