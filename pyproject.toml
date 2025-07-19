@@ -40,7 +40,19 @@ types-pyyaml = "^6.0.12.20250516"
 
 
 [tool.pytest.ini_options]
-addopts = "--strict-markers --tb=short --mypy --cov=aresource --cov-report=html  --cov-report=term --ruff --ruff-format"
+addopts = """
+--strict-markers     
+--tb=short     
+
+--cov=aresource      
+--cov-report=html    
+--cov-report=xml     
+--cov-report=term    
+
+--ruff --ruff-format 
+
+--mypy               
+"""
 asyncio_mode = "auto"
 testpaths = ["tests", "src"]
 

@@ -35,14 +35,14 @@ jobs:
          poetry install
     - name: Test with pytest
       id: pytest
+      shell: bash
       run: |
         poetry run pytest | tee pytest.log
-        FAILED=$?
-        if [ $FAILED -ne 0 ]; then
+        if [ $? -ne 0 ]; then
           echo "# Pytest summary" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           cat pytest.log >>  $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          exit $FAILED
+          exit 1
         fi
        
