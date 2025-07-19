@@ -20,7 +20,7 @@ jobs:
         python_version: ['3.13','3.12','3.11']
     steps:
     - uses: actions/checkout@v4
-    - uses: xbabka01/poetry-action@33b7588
+    - uses: xbabka01/poetry-action@v1
       with:
         python_version: ${{ matrix.python_version }}
     - name: Install dependencies
