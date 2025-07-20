@@ -34,22 +34,22 @@ jobs:
       - name: Increase version
         id: version
         run: |
-          poetry version -s ${{ github.event.inputs.release_type }} >> $GITHUB_OUTPUT
+          echo "version=$(poetry version -s ${{ github.event.inputs.release_type }})" >> $GITHUB_OUTPUT
       - name: Push changes
         run: |
           git config user.name "Peter Babka"
           git config user.email "159peter951@gmail.com"
 
-          git checkout -b release-${{ steps.version.outputs.value }}
+          git checkout -b release-${{ steps.version.outputs.version }}
           git add .
-          git commit -m "Release version ${{ steps.version.outputs.stdout }}"
-          git push --set-upstream origin release-${{ steps.version.outputs.stdout }}
-          gh pr create --title "Release version ${{ steps.version.outputs.stdout }}" --body "This PR releases version ${{ steps.version.outputs.stdout }}." --base main --head release-${{ steps.version.outputs.stdout }}
+          git commit -m "Release version ${{ steps.version.outputs.version }}"
+          git push --set-upstream origin release-${{ steps.version.outputs.version }}
+          gh pr create --title "Release version ${{ steps.version.outputs.version }}" --body "This PR releases version ${{ steps.version.outputs.version }}." --base main --head release-${{ steps.version.outputs.version }}
           gh pr merge --squash --delete-branch --auto --admin --yes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
-      version: ${{ steps.version.outputs.value }}
+      version: ${{ steps.version.outputs.version }}
   create-release:
     needs: increase-version
     # Dedicated environments with protections for publishing are strongly recommended.
@@ -75,14 +75,10 @@ jobs:
       - name: Build release distributions
         run: |
           poetry build
-      - name: Version
-        id: version
-        run: |
-          poetry version -s >> $GITHUB_OUTPUT
       - name: Make release
         id: release
         run: |
-          gh release create v${{ steps.version.outputs.value }} --generate-notes dist/*.whl dist/*.tar.gz
+          gh release create v${{ needs.increase-version.outputs.version }} --generate-notes dist/*.whl dist/*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish release distributions to PyPI
