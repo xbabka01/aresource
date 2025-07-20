@@ -47,10 +47,17 @@ jobs:
           git push --force --set-upstream origin release-${{ steps.version.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Pull request
+      - name: Create pull request
+        id: pr
         run: |
           pr_url=$(gh pr create --title "Release version ${{ steps.version.outputs.version }}" --body "This PR releases version ${{ steps.version.outputs.version }}." --base main --head release-${{ steps.version.outputs.version }})
-          gh pr merge --squash --delete-branch --auto --admin --yes "$pr_url"
+          echo "url=$pr_url" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Merge pull request
+        run: |
+          echo "Merging pull request: ${{ steps.pr.outputs.url }}"
+          gh pr merge --squash --delete-branch --auto --admin --yes "${{ steps.pr.outputs.url }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
