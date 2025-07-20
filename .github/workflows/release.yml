@@ -44,7 +44,7 @@ jobs:
           git checkout -b release-${{ steps.version.outputs.version }}
           git add .
           git commit -m "Release version ${{ steps.version.outputs.version }}"
-          git push --set-upstream origin release-${{ steps.version.outputs.version }}
+          git push --force --set-upstream origin release-${{ steps.version.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Pull request
