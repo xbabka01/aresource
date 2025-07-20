@@ -49,8 +49,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Pull request
         run: |
-          gh pr create --title "Release version ${{ steps.version.outputs.version }}" --body "This PR releases version ${{ steps.version.outputs.version }}." --base main --head release-${{ steps.version.outputs.version }}
-          gh pr merge --squash --delete-branch --auto --admin --yes release-${{ steps.version.outputs.version }}
+          pr_url=$(gh pr create --title "Release version ${{ steps.version.outputs.version }}" --body "This PR releases version ${{ steps.version.outputs.version }}." --base main --head release-${{ steps.version.outputs.version }})
+          gh pr merge --squash --delete-branch --auto --admin --yes "$pr_url"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
