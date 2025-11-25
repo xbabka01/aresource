@@ -7,25 +7,18 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.11, <4.0"
-dependencies = [
-]
+dependencies = []
+
+[project.optional-dependencies]
+aiohttp = ["aiohttp>=3.0.0,<4.0.0"]
+pyhocon = ["pyhocon>=0.3.0,<1.0.0"]
+pyyaml = ["pyyaml>=6.0.0,<7.0.0"]
 
 [project.urls]
 repository = "https://github.com/xbabka01/aresource"
 
 [tool.poetry]
 packages = [{include = "aresource", from = "src"}]
-
-[tool.poetry.dependencies]
-aiohttp = { version = "^3.0.0", optional = true }
-pyhocon = { version = "^0.3.0", optional = true }
-pyyaml = { version = "^6.0.0", optional = true }
-
-
-[tool.poetry.extras]
-aiohttp = ["aiohttp"]
-hocon = ["pyhocon"]
-pyyaml = ["pyyaml"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"
@@ -49,7 +42,8 @@ addopts = """
 --cov-report=xml     
 --cov-report=term    
 
---ruff --ruff-format 
+--ruff
+--ruff-format
 
 --mypy               
 """
