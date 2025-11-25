@@ -25,7 +25,7 @@ class BaseResource(ABC, Generic[T]):
         """Acquire the resource asynchronously."""
         raise NotImplementedError("Must be implemented in a subclass")
         # Needed for this to be generator
-        yield None  # type: ignore
+        yield None  # type: ignore[unreachable]
 
 
 @final
@@ -50,11 +50,16 @@ def resource_context_manager(fn: Callable[[M], AsyncIterator[T]]) -> CallBackRes
     return CallBackResource(asynccontextmanager(fn))
 
 
+class ValueNotInitialized:
+    pass
+
+
 class ResourceManager:
     _cls: Any = None
-    _resources: ClassVar[dict[str, tuple[BaseResource[Any], Any]]] = {}
+    _resources: ClassVar[dict[str, BaseResource[Any]]] = {}
 
     def __init__(self) -> None:
+        self._values: dict[str, Any] = dict.fromkeys(self._resources, ValueNotInitialized)
         self._exit_stack: AsyncExitStack | None = None
 
     @classmethod
@@ -69,7 +74,7 @@ class ResourceManager:
             cls._resources = copy.deepcopy(cls._resources)
             cls._cls = cls
 
-        cls._resources[name] = (resource, ...)
+        cls._resources[name] = resource
         resource.name = name
 
     def get_resource(self, name: str | None) -> Any:
@@ -78,8 +83,8 @@ class ResourceManager:
         """
         if name not in self._resources:
             raise AttributeError(f"Resource {name} is not registered in {self.__class__.__name__}")
-        value = self._resources[name][1]
-        if value is Ellipsis:
+        value = self._values[name]
+        if value is ValueNotInitialized:
             raise AttributeError(
                 f"Resource {name} is not initialized in {self.__class__.__name__}"
             )
@@ -92,9 +97,7 @@ class ResourceManager:
         """
         if name not in self._resources:
             raise AttributeError(f"Resource {name} is not registered in {self.__class__.__name__}")
-
-        resource = self._resources[name][0]
-        self._resources[name] = (resource, value)
+        self._values[name] = value
 
     async def setup(self) -> None:
         await self.__aenter__()
@@ -109,8 +112,8 @@ class ResourceManager:
 
         self._exit_stack = AsyncExitStack()
         try:
-            for name, (resource, _) in self._resources.items():
-                value = await self._exit_stack.enter_async_context(resource.acquire(self))
+            for name, handler in self._resources.items():
+                value = await self._exit_stack.enter_async_context(handler.acquire(self))
                 self.set_resource(name, value)
         except BaseException as exc:
             suppress = await self.__aexit__(type(exc), exc, exc.__traceback__)

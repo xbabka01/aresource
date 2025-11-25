@@ -128,7 +128,7 @@ async def test_cleanup_oder_manager() -> None:
     assert cleaned == [3, 2, 1], "Resources should be cleaned up in reverse order of acquisition"
 
 
-async def test_failure_cleanup_manager() -> None:
+async def test_failure_setup_manager() -> None:
     """Test that ResourceManager can acquire and return a simple ExampleResource asynchronously."""
     cleaned = []
 
