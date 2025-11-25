@@ -4,10 +4,11 @@ from typing import Any
 
 import pytest
 
-from aresource.manager import BaseResource, Resource, ResourceManager
+from aresource import BaseResource, CallbackResource, ResourceManager
+from aresource.resource.context import ContextResource
 
 
-class IntResource(BaseResource[int]):
+class IntResource(BaseResource[int, ResourceManager]):
     def __init__(
         self,
         value: int,
@@ -19,7 +20,7 @@ class IntResource(BaseResource[int]):
         self.on_cleanup = on_cleanup
 
     @contextlib.asynccontextmanager
-    async def acquire(self, manager: "ResourceManager") -> AsyncIterator[int]:
+    async def acquire(self, manager: ResourceManager) -> AsyncIterator[int]:
         """Asynchronously acquire the resource and yield 42."""
         try:
             if self.on_call is not None:
@@ -100,7 +101,8 @@ async def test_decorator() -> None:
     class M1(ResourceManager):
         """Resource manager containing the ExampleResource for testing."""
 
-        @Resource
+        @CallbackResource
+        @contextlib.asynccontextmanager
         async def t1(self) -> AsyncIterator[int]:
             yield 1
 
@@ -173,14 +175,16 @@ async def test_transitive() -> None:
     class M(ResourceManager):
         """Resource manager containing the ExampleResource for testing."""
 
-        @Resource
+        @CallbackResource
+        @contextlib.asynccontextmanager
         async def t1(self) -> AsyncIterator[int]:
             try:
                 yield 1
             finally:
                 cleaned.append(1)
 
-        @Resource
+        @CallbackResource
+        @contextlib.asynccontextmanager
         async def t2(self) -> AsyncIterator[int]:
             try:
                 yield self.t1 + 1
@@ -201,14 +205,16 @@ async def test_wrong_order() -> None:
     class M(ResourceManager):
         """Resource manager containing the ExampleResource for testing."""
 
-        @Resource
+        @CallbackResource
+        @contextlib.asynccontextmanager
         async def t2(self) -> AsyncIterator[int]:
             try:
                 yield self.t1 + 1
             finally:
                 cleaned.append(2)
 
-        @Resource
+        @CallbackResource
+        @contextlib.asynccontextmanager
         async def t1(self) -> AsyncIterator[int]:
             try:
                 yield 1
@@ -219,3 +225,29 @@ async def test_wrong_order() -> None:
         async with M():
             pytest.fail("This should not be reached")
     assert cleaned == [2], "Resources should be cleaned up in reverse order of acquisition"
+
+
+async def test_with_callback_manager() -> None:
+    """Test that ResourceManager can acquire and return a simple ExampleResource asynchronously."""
+
+    @contextlib.asynccontextmanager
+    async def context(_: ResourceManager) -> AsyncIterator[int]:
+        yield 1
+
+    class A(ResourceManager):
+        val = CallbackResource(context)
+
+    async with A() as a:
+        assert a.val == 1
+
+
+async def test_with_context_manager() -> None:
+    @contextlib.asynccontextmanager
+    async def context() -> AsyncIterator[int]:
+        yield 1
+
+    class B(ResourceManager):
+        val = ContextResource(context())
+
+    async with B() as b:
+        assert b.val == 1
