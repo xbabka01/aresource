@@ -1,0 +1,99 @@
+name: Upload Python Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Type of release'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - prepatch
+          - preminor
+          - premajor
+          - prerelease
+
+permissions:
+  contents: write
+  
+jobs:
+  increase-version:
+    environment:
+      name: pypi
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: xbabka01/poetry-action@v1
+        with:
+          python_version: '3.13'
+      - name: Increase version
+        id: version
+        run: |
+          echo "version=$(poetry version -s ${{ github.event.inputs.release_type }})" >> $GITHUB_OUTPUT
+      - name: Push changes
+        run: |
+          git config user.name "Peter Babka"
+          git config user.email "159peter951@gmail.com"
+
+          git checkout -b release-${{ steps.version.outputs.version }}
+          git add .
+          git commit -m "Release version ${{ steps.version.outputs.version }}"
+          git push --force --set-upstream origin release-${{ steps.version.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create pull request
+        id: pr
+        run: |
+          pr_url=$(gh pr create --title "Release version ${{ steps.version.outputs.version }}" --body "This PR releases version ${{ steps.version.outputs.version }}." --base main --head release-${{ steps.version.outputs.version }})
+          echo "url=$pr_url" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Merge pull request
+        run: |
+          echo "Merging pull request: ${{ steps.pr.outputs.url }}"
+          gh pr merge --squash --delete-branch --auto --admin --yes "${{ steps.pr.outputs.url }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+  create-release:
+    needs: increase-version
+    # Dedicated environments with protections for publishing are strongly recommended.
+    # For more information, see: https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment#deployment-protection-rules
+    environment:
+      name: pypi
+      # OPTIONAL: uncomment and update to include your PyPI project URL in the deployment status:
+      # url: https://pypi.org/p/YOURPROJECT
+      #
+      # ALTERNATIVE: if your GitHub Release name is the PyPI project version string
+      # ALTERNATIVE: exactly, uncomment the following line instead:
+      # url: https://pypi.org/project/YOURPROJECT/${{ github.event.release.name }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: xbabka01/poetry-action@v1
+        with:
+          python_version: '3.13'
+      - name: Build release distributions
+        run: |
+          poetry build
+      - name: Make release
+        id: release
+        run: |
+          gh release create v${{ needs.increase-version.outputs.version }} --generate-notes dist/*.whl dist/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish release distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
