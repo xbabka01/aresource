@@ -3,7 +3,7 @@ from collections.abc import AsyncIterator
 
 import pytest
 
-from aresource.manager import BaseResource, ResourceManager, resource
+from aresource.manager import BaseResource, ResourceManager, resource_context_manager
 
 
 class ExampleResource(BaseResource[int]):
@@ -84,7 +84,7 @@ async def test_decorator_resource_manager() -> None:
     class Test1(ResourceManager):
         """Resource manager containing the ExampleResource for testing."""
 
-        @resource
+        @resource_context_manager
         async def test1(self: "Test1") -> AsyncIterator[int]:
             yield 1
 
@@ -99,21 +99,21 @@ async def test_cleanup_oder_manager() -> None:
     class Test1(ResourceManager):
         """Resource manager containing the ExampleResource for testing."""
 
-        @resource
+        @resource_context_manager
         async def test1(self: "Test1") -> AsyncIterator[int]:
             try:
                 yield 1
             finally:
                 cleaned.append(1)
 
-        @resource
+        @resource_context_manager
         async def test2(self: "Test1") -> AsyncIterator[int]:
             try:
                 yield 2
             finally:
                 cleaned.append(2)
 
-        @resource
+        @resource_context_manager
         async def test3(self: "Test1") -> AsyncIterator[int]:
             try:
                 yield 3
@@ -135,27 +135,27 @@ async def test_failure_cleanup_manager() -> None:
     class Test1(ResourceManager):
         """Resource manager containing the ExampleResource for testing."""
 
-        @resource
+        @resource_context_manager
         async def test1(self: "Test1") -> AsyncIterator[int]:
             try:
                 yield 1
             finally:
                 cleaned.append(1)
 
-        @resource
+        @resource_context_manager
         async def test2(self: "Test1") -> AsyncIterator[int]:
             try:
                 yield 2
             finally:
                 cleaned.append(2)
 
-        @resource
+        @resource_context_manager
         async def test3(self: "Test1") -> AsyncIterator[int]:
             raise RuntimeError("This is a test failure")
             # This line will never be reached, but is needed for type checking
             yield None  # type: ignore[unreachable]
 
-        @resource
+        @resource_context_manager
         async def test4(self: "Test1") -> AsyncIterator[int]:
             try:
                 yield 4
@@ -176,14 +176,14 @@ async def test_transitive_manager() -> None:
     class Test1(ResourceManager):
         """Resource manager containing the ExampleResource for testing."""
 
-        @resource
+        @resource_context_manager
         async def test1(self: "Test1") -> AsyncIterator[int]:
             try:
                 yield 1
             finally:
                 cleaned.append(1)
 
-        @resource
+        @resource_context_manager
         async def test2(self: "Test1") -> AsyncIterator[int]:
             try:
                 yield self.test1 + 1
