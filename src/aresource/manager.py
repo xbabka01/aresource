@@ -1,8 +1,15 @@
 import copy
+import sys
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator, Callable
 from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
-from typing import Any, ClassVar, Generic, Self, TypeVar, final
+from typing import Any, ClassVar, Generic, Self, final
+
+if sys.version_info <= (3, 11):
+    from typing_extensions import TypeVar
+else:
+    from typing import TypeVar
+
 
 T = TypeVar("T")
 M = TypeVar("M", bound="ResourceManager", default="ResourceManager")
@@ -47,14 +54,6 @@ class Resource(BaseResource[T, M], Generic[T, M]):
             raise TypeError(
                 f"{res.__name__} is not a subclass of AbstractAsyncContextManager|AsyncIterator"
             )
-
-
-class ValueNotInitialized:
-    pass
-
-
-def resource_context_manager(fn: Callable[[M], AsyncIterator[T]]) -> CallBackResource[T]:
-    return CallBackResource(asynccontextmanager(fn))
 
 
 class ValueNotInitialized:
