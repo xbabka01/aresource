@@ -5,7 +5,7 @@ from collections.abc import AsyncIterator, Callable
 from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
 from typing import Any, ClassVar, Generic, Self, final
 
-if sys.version_info <= (3, 11):
+if sys.version_info < (3, 12):
     from typing_extensions import TypeVar
 else:
     from typing import TypeVar
