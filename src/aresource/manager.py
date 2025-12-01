@@ -1,14 +1,21 @@
 import copy
+import sys
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator, Callable
 from contextlib import AbstractAsyncContextManager, AsyncExitStack, asynccontextmanager
-from typing import Any, ClassVar, Generic, Self, TypeVar, final
+from typing import Any, ClassVar, Generic, Self, final
+
+if sys.version_info < (3, 13):
+    from typing_extensions import TypeVar
+else:
+    from typing import TypeVar
+
 
 T = TypeVar("T")
-M = TypeVar("M", bound="ResourceManager")
+M = TypeVar("M", bound="ResourceManager", default="ResourceManager")
 
 
-class BaseResource(ABC, Generic[T]):
+class BaseResource(ABC, Generic[T, M]):
     name: str | None = None
 
     @final
@@ -20,34 +27,33 @@ class BaseResource(ABC, Generic[T]):
         owner.register_resource(name, self)
 
     @abstractmethod
-    @asynccontextmanager
-    async def acquire(self, manager: "ResourceManager") -> AsyncIterator[T]:
+    def acquire(self, manager: "M") -> AbstractAsyncContextManager[T]:
         """Acquire the resource asynchronously."""
         raise NotImplementedError("Must be implemented in a subclass")
-        # Needed for this to be generator
-        yield None  # type: ignore[unreachable]
 
 
-@final
-class CallBackResource(BaseResource[T], Generic[T]):
+class Resource(BaseResource[T, M], Generic[T, M]):
     def __init__(
         self,
-        context: Callable[[Any], AbstractAsyncContextManager[T]],
+        context: Callable[[Any], AbstractAsyncContextManager[T] | AsyncIterator[T]],
     ) -> None:
         self.context = context
 
-    @asynccontextmanager
-    async def acquire(self, manager: "ResourceManager") -> AsyncIterator[T]:
-        async with self.context(manager) as value:
-            yield value
+    def acquire(self, manager: "M") -> AbstractAsyncContextManager[T]:
+        res = self.context(manager)
+        if isinstance(res, AbstractAsyncContextManager):
+            return res
+        elif isinstance(res, AsyncIterator):
 
+            @asynccontextmanager
+            def wrap() -> AsyncIterator[T]:
+                return res
 
-def resource(fn: Callable[[M], AbstractAsyncContextManager[T]]) -> CallBackResource[T]:
-    return CallBackResource(fn)
-
-
-def resource_context_manager(fn: Callable[[M], AsyncIterator[T]]) -> CallBackResource[T]:
-    return CallBackResource(asynccontextmanager(fn))
+            return wrap()
+        else:
+            raise TypeError(
+                f"{res.__name__} is not a subclass of AbstractAsyncContextManager|AsyncIterator"
+            )
 
 
 class ValueNotInitialized:
@@ -62,13 +68,14 @@ class ResourceManager:
         self._values: dict[str, Any] = dict.fromkeys(self._resources, ValueNotInitialized)
         self._exit_stack: AsyncExitStack | None = None
 
+    @final
     @classmethod
-    def register_resource(cls, name: str, resource: BaseResource[Any]) -> None:
+    def register_resource(cls, name: str, resource: BaseResource[Any, Any]) -> None:
         """Register a resource with the manager."""
         if not isinstance(resource, BaseResource):
             raise TypeError(f"{resource.__name__} is not a subclass of BaseResource")
         if name in cls._resources:
-            raise AttributeError(f"Resource {name} is already registered in {cls.__name__}")
+            raise ValueError(f"Resource {name} is already registered in {cls.__name__}")
         # Create a copy of the class resources to avoid modifying the superclass
         if cls._cls is not cls:
             cls._resources = copy.deepcopy(cls._resources)
@@ -77,6 +84,7 @@ class ResourceManager:
         cls._resources[name] = resource
         resource.name = name
 
+    @final
     def get_resource(self, name: str | None) -> Any:
         """
         Get the value of a registered resource by name.
@@ -90,6 +98,7 @@ class ResourceManager:
             )
         return value
 
+    @final
     def set_resource(self, name: str, value: Any) -> None:
         """
         Set the value of a registered resource by name.
