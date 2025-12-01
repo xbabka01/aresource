@@ -25,7 +25,6 @@ class BaseResource(ABC, Generic[T, M]):
         raise NotImplementedError("Must be implemented in a subclass")
 
 
-@final
 class Resource(BaseResource[T, M], Generic[T, M]):
     def __init__(
         self,
@@ -48,6 +47,14 @@ class Resource(BaseResource[T, M], Generic[T, M]):
             raise TypeError(
                 f"{res.__name__} is not a subclass of AbstractAsyncContextManager|AsyncIterator"
             )
+
+
+class ValueNotInitialized:
+    pass
+
+
+def resource_context_manager(fn: Callable[[M], AsyncIterator[T]]) -> CallBackResource[T]:
+    return CallBackResource(asynccontextmanager(fn))
 
 
 class ValueNotInitialized:
