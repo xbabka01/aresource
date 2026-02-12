@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python_version: ['3.13','3.12','3.11']
+        python_version: ['3.14','3.13']
     steps:
     - uses: actions/checkout@v4
     - uses: xbabka01/poetry-action@v1
