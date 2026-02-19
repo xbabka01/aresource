@@ -34,109 +34,28 @@ Example of usage. Load config and use it to initialize new session
 
 ```python
 import asyncio
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from io import TextIOBase
 
-from aresource import ResourceManager
-from aresource.aiohttp import ClientSessionResource
-from aresource.files import HoconResource
+from aresource import callback_context_resource, ResourceManager
+
 
 class Manager(ResourceManager):
-  data = HoconResource("tests", "config.conf")
-  session = ClientSessionResource(lambda m: m.data['session'])
+    @callback_context_resource
+    async def file(self) -> AsyncIterator[TextIOBase]:
+        with open("config.txt", "w") as f:
+            yield f
+
 
 async def main() -> None:
-  async with (
-    Manager() as mng,
-    mng.session.get('http://example.com') as resp
-  ):
-    print(await resp.read())
+    async with Manager() as mng:
+        mng.file.write("Hello, World!")
+
 
 if __name__ == "__main__":
-  asyncio.run(main())
+    asyncio.run(main())
 ```
-
-## Examples
-
-### Load data from package 
-
-#### Load bytes from a Python file
-
-```python
-from aresource import ResourceManager
-from aresource.files import BytesResource
-
-class Manager(ResourceManager):
-  data = BytesResource("aresource", "__init__.py")
-```
-
-#### Load HOCON configuration
-
-```python
-from aresource import ResourceManager
-from aresource.files import HoconResource
-
-class Manager(ResourceManager):
-  data = HoconResource("tests", "data/test.conf")
-```
-
-**Note**: require optional dependency `pyhocon`
-
-#### Load INI configuration
-
-```python
-from aresource import ResourceManager
-from aresource.files import IniResource
-
-class Manager(ResourceManager):
-  data = IniResource("tests", "data/test.ini")
-```
-
-#### Load JSON data
-
-```python
-from aresource import ResourceManager
-from aresource.files import JsonResource
-
-class Manager(ResourceManager):
-  data = JsonResource("tests", "data/test.json")
-```
-
-#### Load file path as a resource
-
-```python
-from aresource import ResourceManager
-from aresource.files import PathResource
-
-class Manager(ResourceManager):
-  data = PathResource("tests", "data/test.json")
-```
-
-#### Load YAML data
-
-```python
-from aresource import ResourceManager
-from aresource.files import YamlResource
-
-class Manager(ResourceManager):
-  data = YamlResource("tests", "data/test.yaml")
-```
-
-**Note**: require optional dependency `pyyaml`
-
-### Aiohttp
-
-**Note**: require optional dependency `aiohttp`
-
-#### Create session
-
-
-```python
-from aresource import ResourceManager
-from aresource.aiohttp import ClientSessionResource
-
-class Manager(ResourceManager):
-  data = ClientSessionResource()
-```
-
 
 ## Testing
 

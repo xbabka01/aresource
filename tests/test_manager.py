@@ -4,8 +4,13 @@ from typing import Any
 
 import pytest
 
-from aresource import BaseResource, CallbackResource, ResourceManager
-from aresource.resource.context import ContextResource
+from aresource import (
+    BaseResource,
+    ResourceManager,
+    callback_context_resource,
+    callback_resource,
+    context_resource,
+)
 
 
 class IntResource(BaseResource[int, ResourceManager]):
@@ -35,7 +40,6 @@ def raise_value_error(*args: Any, **kwargs: Any) -> None:
     raise ValueError("Expected a ValueError")
 
 
-@pytest.mark.asyncio
 async def test_single() -> None:
     """Test that ResourceManager can acquire and return a simple ExampleResource asynchronously."""
 
@@ -48,7 +52,6 @@ async def test_single() -> None:
         assert manager.value == 42
 
 
-@pytest.mark.asyncio
 async def test_multiple() -> None:
     """Test that ResourceManager can acquire and return a simple ExampleResource asynchronously."""
 
@@ -72,7 +75,6 @@ async def test_multiple() -> None:
         assert m2.t2 == 2
 
 
-@pytest.mark.asyncio
 async def test_inheritance() -> None:
     """Test that ResourceManager can acquire and return a simple ExampleResource asynchronously."""
 
@@ -101,8 +103,7 @@ async def test_decorator() -> None:
     class M1(ResourceManager):
         """Resource manager containing the ExampleResource for testing."""
 
-        @CallbackResource
-        @contextlib.asynccontextmanager
+        @callback_context_resource
         async def t1(self) -> AsyncIterator[int]:
             yield 1
 
@@ -175,16 +176,14 @@ async def test_transitive() -> None:
     class M(ResourceManager):
         """Resource manager containing the ExampleResource for testing."""
 
-        @CallbackResource
-        @contextlib.asynccontextmanager
+        @callback_context_resource
         async def t1(self) -> AsyncIterator[int]:
             try:
                 yield 1
             finally:
                 cleaned.append(1)
 
-        @CallbackResource
-        @contextlib.asynccontextmanager
+        @callback_context_resource
         async def t2(self) -> AsyncIterator[int]:
             try:
                 yield self.t1 + 1
@@ -205,16 +204,14 @@ async def test_wrong_order() -> None:
     class M(ResourceManager):
         """Resource manager containing the ExampleResource for testing."""
 
-        @CallbackResource
-        @contextlib.asynccontextmanager
+        @callback_context_resource
         async def t2(self) -> AsyncIterator[int]:
             try:
                 yield self.t1 + 1
             finally:
                 cleaned.append(2)
 
-        @CallbackResource
-        @contextlib.asynccontextmanager
+        @callback_context_resource
         async def t1(self) -> AsyncIterator[int]:
             try:
                 yield 1
@@ -235,7 +232,7 @@ async def test_with_callback_manager() -> None:
         yield 1
 
     class A(ResourceManager):
-        val = CallbackResource(context)
+        val = callback_resource(context)
 
     async with A() as a:
         assert a.val == 1
@@ -243,11 +240,11 @@ async def test_with_callback_manager() -> None:
 
 async def test_with_context_manager() -> None:
     @contextlib.asynccontextmanager
-    async def context() -> AsyncIterator[int]:
+    async def x() -> AsyncIterator[int]:
         yield 1
 
     class B(ResourceManager):
-        val = ContextResource(context())
+        val = context_resource(x())
 
     async with B() as b:
         assert b.val == 1
