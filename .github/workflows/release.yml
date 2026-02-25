@@ -5,6 +5,7 @@ on:
       - "v*"
 permissions:
   contents: read
+  id-token: write
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -41,6 +42,4 @@ jobs:
       - name: Build package
         run: poetry build
       - name: Publish to PyPI
-        env:
-          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
-        run: poetry publish --no-interaction --no-ansi
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # release/v1
